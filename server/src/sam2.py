@@ -4,46 +4,48 @@ from PIL import Image
 import numpy as np
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
-from typing import List
-
-CKPT = "./checkpoints/sam2.1_hiera_large.pt"
-MODEL_CFG = "configs/sam2.1/sam2.1_hiera_l.yaml"
 
 CENTER_POINT_POS = np.array([[500, 610]])
 CENTER_POINT_LABEL = np.array([1])
 
-def _load_images(source_p: str) -> list:
-  images = []
+model = None
+model_args = None
 
-  for image in os.scandir(source_p):
-    if image.name.endswith('.jpg'):
-      images.append((image.name[:-4], np.array(Image.open(image).resize((960, 1280)).convert("RGB"))))
-  
-  return images
+class SAM2Args:
+  def __init__(self, **kwargs):
+    self.root_p = kwargs['root_p']
 
-model = SAM2ImagePredictor(build_sam2(MODEL_CFG, CKPT))
+    weights_file_name = kwargs['weights_file_name']
+    self.weights_p = f'{self.root_p}/checkpoints/{weights_file_name}'
 
-def sam2_process(source_p: str, dest_p: str) -> None:
-  images = _load_images(source_p)
+    cfg_file_name = kwargs['cfg_file_name']
+    self.cfg_p = f'{self.root_p}/configs/{cfg_file_name}'
 
-  with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-    for image_name, image in images:
+    self.device = kwargs['device']
+
+def init_predictor(args: SAM2Args) -> None:
+  global model
+  model = SAM2ImagePredictor(build_sam2(args.cfg_p, args.weights_p))
+
+  global model_args
+  model_args = args
+
+def process(source_images: list) -> torch.Tensor:
+  masks = []
+
+  with torch.inference_mode(), torch.autocast(model_args.device.type, dtype=torch.bfloat16):
+    for image in source_images:
       model.set_image(image)
-      masks, scores, _ = model.predict(
+      pred_masks, scores, _ = model.predict(
         point_coords=CENTER_POINT_POS,
         point_labels=CENTER_POINT_LABEL,
         multimask_output=True,
       )
 
       sorted_ind = np.argsort(scores)[::-1]
-      masks = masks[sorted_ind]
-      scores = scores[sorted_ind]
+      pred_masks = pred_masks[sorted_ind] # (3, H, W)
+      best_mask = pred_masks[0] # (H, W)
+      
+      masks.append(best_mask.unsqueeze(-1).astype(np.uint8) * 255) # (H, W, 1)
 
-      if os.path.exists(f'dest_p/{image_name}.png'):
-        os.remove(f'dest_p/{image_name}.png')
-
-      Image.fromarray(
-        masks[0].astype(np.uint8) * 255
-      ).convert("RGB").save(
-        f'dest_p/{image_name}.png'
-      )
+  return torch.stack(masks) # (B, H, W, 1)

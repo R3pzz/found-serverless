@@ -3,11 +3,10 @@ import json
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-SHOULD_FLIP_Z = True
+from detail.config import IMAGE_SIZE, INTERMEDIATE_IMAGE_SIZE
+from detail.types import ARKitSource
 
-IMAGE_SIZE = np.array([1440.0, 1920.0])
-TARGET_IMAGE_SIZE = np.array([960.0, 1280.0])
-DOWNSCALE_FACTOR = TARGET_IMAGE_SIZE / IMAGE_SIZE
+DOWNSCALE_FACTOR = INTERMEDIATE_IMAGE_SIZE / IMAGE_SIZE
 
 # arkit to pytorch3d coordinate system transformation matrix
 TRANSF_A2P = np.diag([-1., 1., -1.])
@@ -17,7 +16,7 @@ ROTATE_90_X = Rotation.from_euler('x', 90, degrees=True).as_matrix()
 ROTATE_NEG90_Z = Rotation.from_euler('z', -90, degrees=True).as_matrix()
 ROTATE_180_Z = Rotation.from_euler('z', 180, degrees=True).as_matrix()
 
-def _load_arkit_data_from_file(path: str) -> object:
+def _load_arkit_data_from_file(path: str) -> dict:
   arkit_data = {}
 
   for image in os.scandir(path):
@@ -30,21 +29,25 @@ def _load_arkit_data_from_file(path: str) -> object:
 
   return arkit_data
 
-def _serialize_arkit_data(data: object) -> object:
-  json_obj = {
-    'images': []
+def _serialize_arkit_data(data: dict) -> ARKitSource:
+  result = {
+    'filename': [],
+    'R': [], # world-to-camera rotation transform matrix
+    'T': [], # world-to-camera translation vector
+    'pp': [], # downscaled principal point coordinates
+    'f': [], # downscaled focal length
   }
 
-  for pth, camera in data.items():
-    json_obj['images'].append({
-      'pth': pth,
-      'R': camera['R'].tolist(), # world-to-camera rotation transform matrix
-      'T': camera['T'].tolist(), # world-to-camera translation vector
-      'pp': camera['pp'].tolist(), # downscaled principal point coordinates
-      'f': camera['f'], # downscaled focal length
-    })
+  for filename, camera in data.items():
+    result['filename'].append(filename)
+    result['R'].append(camera['R'].tolist())
+    result['T'].append(camera['T'].tolist())
+    result['pp'].append(camera['pp'].tolist())
+    result['f'].append(camera['f'])
+  
+  return result
 
-def process_arkit_data(path: str) -> object:
+def load_arkit_from_dir(path: str) -> ARKitSource:
   data = _load_arkit_data_from_file(path)
 
   for _, camera in data.items():
@@ -61,8 +64,9 @@ def process_arkit_data(path: str) -> object:
 
     # move the cameras
     camera['C'] = ROTATE_90_X @ camera['C']
-    if SHOULD_FLIP_Z:
-      camera['C'] = ROTATE_180_Z @ camera['C']
+    
+    # TODO: FIXME: Apply a Z-flip
+    camera['C'] = ROTATE_180_Z @ camera['C']
 
     # calculate R
     camera['R'] = TRANSF_A2P @ Rotation.from_euler(
@@ -79,8 +83,9 @@ def process_arkit_data(path: str) -> object:
 
     # rotate the cameras
     camera['R'] = (ROTATE_90_X @ camera['R'].T).T
-    if SHOULD_FLIP_Z:
-      camera['R'] = (ROTATE_180_Z @ camera['R'].T).T
+    
+    # TODO: FIXME: Apply a Z-flip
+    camera['R'] = (ROTATE_180_Z @ camera['R'].T).T
 
     # calculate T
     camera['T'] = (-camera['R'] @ camera['C'][:, None])[..., 0]

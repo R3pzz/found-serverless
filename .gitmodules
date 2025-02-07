@@ -1,6 +1,7 @@
 [submodule "FOUND"]
 	path = FOUND
 	url = https://github.com/R3pzz/FOUND
+	branch = no-keypoints
 [submodule "surface_normal_uncertainty"]
 	path = surface_normal_uncertainty
 	url = https://github.com/R3pzz/surface_normal_uncertainty
