@@ -32,20 +32,22 @@ RUN echo "Python version: $(python3 --version)"
 # ----------------------------------------------------
 # Pytorch3d-------------------------------------------
 WORKDIR /app
-RUN git clone https://github.com/facebookresearch/pytorch3d.git
+RUN git clone --recurse-submodules https://github.com/facebookresearch/pytorch3d.git
 WORKDIR /app/pytorch3d
 RUN pip install -e .
+# ----------------------------------------------------
 
 # ----------------------------------------------------
 # SAM2 ------------------------------------------------
 WORKDIR /app
-RUN git clone https://github.com/facebookresearch/sam2.git
+RUN git clone --recurse-submodules https://github.com/facebookresearch/sam2.git
 
 # Install SAM2 and download the checkpoints
 WORKDIR /app/sam2
 RUN pip3 install -e .
 WORKDIR /app/sam2/checkpoints
 RUN ./download_ckpts.sh
+# ----------------------------------------------------
 
 # ----------------------------------------------------
 # FOUND -----------------------------------------------
@@ -62,11 +64,13 @@ RUN pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfile
 RUN mkdir /app/FOUND/data
 WORKDIR /app/FOUND/data
 RUN gdown --folder https://drive.google.com/drive/folders/1XWmEVo3AdnhJU2fs6igls-emp93beQpm
+# ----------------------------------------------------
 
 # ----------------------------------------------------
 # SNU -------------------------------------------------
 WORKDIR /app
 RUN git clone --recurse-submodules https://github.com/R3pzz/surface_normal_uncertainty.git
+# ----------------------------------------------------
 
 # -----------------------------------------------------
 # Main
@@ -74,7 +78,7 @@ RUN git clone --recurse-submodules https://github.com/R3pzz/surface_normal_uncer
 
 # Copy the orchestration script from the notebook
 WORKDIR /app
-COPY /src /app/src
+COPY /server/src /app/src
 
 # Expose necessary ports (optional, for debugging)
 EXPOSE 8000
