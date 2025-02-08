@@ -4,9 +4,7 @@ import torch
 import runpod
 import numpy as np
 
-from .arkit import load_arkit_from_dir
-from .images import load_images_from_dir
-
+from .data import init_cloud, download_from_cloud
 from .detail.config import FOUND_IMAGE_SIZE
 
 import found
@@ -14,8 +12,9 @@ import sam2
 import snu
 
 # architecture:
-# 1. client uploads their files onto a cloud storage
-# 2. client sends a request to the server with a link to the uploaded files
+# 0. client creates a temporary bucket with a unique id using supabase
+# 1. client uploads their files onto the bucket
+# 2. client sends a request to the server with the id
 # 3. server generates a unique request id and a temporary folder
 # 4. server processes the uploaded files and generates a result
 # 5. server uploads the result onto a cloud storage
@@ -26,6 +25,9 @@ FOUND_P = '/app/FOUND'
 SNU_P = '/app/surface_normal_uncertainty'
 SAM2_P = '/app/sam2'
 FILE_STORAGE_ROOT = '/app/temp'
+
+SUPABASE_URL = ''
+SUPABASE_API_KEY = ''
 
 def calc_size(kps: dict) -> float:
   big_toe = np.array(kps['big toe'])
@@ -39,12 +41,8 @@ def calc_size(kps: dict) -> float:
 def pipeline(event) -> float:
   id = str(event['id'])
   
-  # todo: implement file download logic
-  images_p = os.path.join(FILE_STORAGE_ROOT, id)
-
-  # load source images for this request as PIL.Image
-  source_arkit = load_arkit_from_dir(images_p)
-  source_images = load_images_from_dir(images_p)
+  # Download files from the cloud storage
+  source_images, source_arkit = download_from_cloud(id)
 
   predictions = snu.process(source_images)
   predictions[:]['mask'] = sam2.process(source_images)
@@ -65,6 +63,8 @@ if __name__ == '__main__':
     device = torch.device('cuda')
   else:
     raise RuntimeError('cuda device not available')
+
+  init_cloud(SUPABASE_URL, SUPABASE_API_KEY)
 
   sam2_args = sam2.SAM2Args(
     root_p=SAM2_P,

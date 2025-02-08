@@ -3,8 +3,8 @@ import json
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from detail.config import IMAGE_SIZE, INTERMEDIATE_IMAGE_SIZE
-from detail.types import ARKitSource
+from .config import IMAGE_SIZE, INTERMEDIATE_IMAGE_SIZE
+from .types import ARKitSource
 
 DOWNSCALE_FACTOR = INTERMEDIATE_IMAGE_SIZE / IMAGE_SIZE
 
@@ -47,8 +47,11 @@ def _serialize_arkit_data(data: dict) -> ARKitSource:
   
   return result
 
-def load_arkit_from_dir(path: str) -> ARKitSource:
-  data = _load_arkit_data_from_file(path)
+def process_arkit(path: str, custom_loader=None, **loader_kwargs) -> ARKitSource:
+  if custom_loader:
+    data = custom_loader(**loader_kwargs)
+  else:
+    data = _load_arkit_data_from_file(path)
 
   for _, camera in data.items():
     # downscale pp and f
