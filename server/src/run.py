@@ -12,14 +12,20 @@ import sam2
 import snu
 
 # architecture:
-# 0. client creates a temporary bucket with a unique id using supabase
-# 1. client uploads their files onto the bucket
-# 2. client sends a request to the server with the id
-# 3. server generates a unique request id and a temporary folder
+# 1. client generates a unique task id
+# 2. client uploads source files into a supabase bucket and puts them into an associated task id folder
+# 3. client sends a request to the server with the associated task id
 # 4. server processes the uploaded files and generates a result
-# 5. server uploads the result onto a cloud storage
-# 6. server sends the response containing a link to the uploaded results
-# 7. temporary folders are deleted after processing
+# 5. server uploads the result into the supabase result bucket and puts it into an associated task id folder
+# 6. server sends the response with the confirmation and the foot size
+# 7. client downloads the results from the supabase result bucket
+# 8. client performs the clean-up
+
+# Current problems:
+# 1. Task tracking is not implemented. We should create a database using SupaBase to
+#    track the tasks which we're in progress of doing, which we completed, which we
+#    dropped, etc..
+# 2. Task ID is generated on the client, meaning that we can run into an ID collision.
 
 FOUND_P = '/app/FOUND'
 SNU_P = '/app/surface_normal_uncertainty'
@@ -38,9 +44,7 @@ def calc_size(kps: dict) -> float:
   foot_size = big_toe[0] - heel[0] 
   return foot_size
 
-def pipeline(event) -> float:
-  id = str(event['id'])
-  
+def pipeline(id: str) -> float:
   # Download files from the cloud storage
   source_images, source_arkit = download_from_cloud(id)
 
@@ -51,9 +55,14 @@ def pipeline(event) -> float:
 
   # do something with mesh(upload it somewhere, idk..) and calculate the foot size
   return calc_size(kps)
-  
+
 def runpod_handler(event):
-  pass
+  id: str = event['input']['id']
+  
+  print(f'processing task {id}')
+  foot_size = pipeline(id)
+
+  return {'status': 'completed', 'id': id, 'foot_size': foot_size}
 
 if __name__ == '__main__':
   sys.path.append(f'/app')

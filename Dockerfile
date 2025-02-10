@@ -78,7 +78,7 @@ RUN git clone --recurse-submodules https://github.com/R3pzz/surface_normal_uncer
 
 # Copy the orchestration script from the notebook
 WORKDIR /app
-COPY /server/src /app/src
+COPY server/src /app/src
 
 # Expose necessary ports (optional, for debugging)
 EXPOSE 8000

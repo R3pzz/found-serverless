@@ -9,6 +9,8 @@ from .detail.config import IMAGE_SIZE
 from .detail.types import ARKitSource
 from .detail.process_arkit import process_arkit
 
+SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
+
 supabase: Client = None
 
 # A utility function to replace an extension of a file path
@@ -41,9 +43,11 @@ def init_cloud(url: str, key: str) -> None:
   supabase = create_client(url, key)
 
 def download_from_cloud(id: str) -> tuple[list, ARKitSource]:
+  task_folder_path = f'tasks/{id}/'
+  
   # Get all files in the bucket
-  bucket = supabase.storage.from_(id)
-  filenames = bucket.list()
+  bucket = supabase.storage.from_(SUPABASE_SOURCE_BUCKET_ID)
+  filenames = bucket.list(task_folder_path)
 
   # Filter out image file names
   image_names = [
@@ -61,7 +65,7 @@ def download_from_cloud(id: str) -> tuple[list, ARKitSource]:
     images.append(image)
   
   # Get associated ARKit file names
-  arkit_names = map(lambda f: _replace_extension(f, '.json'), image_names)
+  arkit_names = list(map(lambda f: _replace_extension(f, '.json'), image_names))
 
   # Load all ARKit files
   arkit_data_strings = []
