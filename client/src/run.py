@@ -4,8 +4,8 @@ import runpod
 
 from supabase import Client, create_client
 
-SUPABASE_URL = ''
-SUPABASE_API_KEY = ''
+SUPABASE_URL = 'https://tklasdbytqfxmplhgsbv.supabase.co'
+SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrbGFzZGJ5dHFmeG1wbGhnc2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NDgwMjYsImV4cCI6MjA1NDUyNDAyNn0.9OMmEZtA0awVUhUxBgGbpTPtoI23nXJWiZOhc42Iqsw'
 SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
 
 RUNPOD_API_KEY = ''
