@@ -7,7 +7,7 @@ import numpy as np
 from data import init_cloud, download_from_cloud
 from detail.config import FOUND_IMAGE_SIZE
 
-import found, snu, sam2
+import found, snu, sam
 
 # architecture:
 # 1. client generates a unique task id
@@ -47,7 +47,7 @@ def pipeline(id: str) -> float:
   source_images, source_arkit = download_from_cloud(id)
 
   predictions = snu.process(source_images)
-  predictions[:]['mask'] = sam2.process(source_images)
+  predictions[:]['mask'] = sam.process(source_images)
 
   mesh, kps = found.process(predictions, source_arkit)
 
@@ -70,13 +70,13 @@ if __name__ == '__main__':
 
   init_cloud(SUPABASE_URL, SUPABASE_API_KEY)
 
-  sam2_args = sam2.SAM2Args(
+  sam2_args = sam.SAM2Args(
     root_p=SAM2_P,
     weights_file_name='sam2.1_hiera_large.pt',
     cfg_p='sam2.1/sam2.1_hiera_l.yaml',
     device=device
   )
-  sam2.init_predictor(sam2_args)
+  sam.init_predictor(sam2_args)
 
   snu_args = snu.SNUArgs(
     root_p=SNU_P,

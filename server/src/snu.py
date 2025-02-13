@@ -4,8 +4,8 @@ from torchvision import transforms
 
 from detail.types import Predictions
 
-from surface_normal_uncertainty.models.NNET import NNET
-from surface_normal_uncertainty.utils import utils
+from surface_normal_uncertainty.src.models.NNET import NNET
+from surface_normal_uncertainty.src.utils import utils
 
 IMG_TRANSF = transforms.Compose([
   transforms.Resize(),
