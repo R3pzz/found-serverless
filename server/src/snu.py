@@ -2,7 +2,7 @@ import torch
 
 from torchvision import transforms
 
-from .detail.types import Predictions
+from detail.types import Predictions
 
 from surface_normal_uncertainty.models.NNET import NNET
 from surface_normal_uncertainty.utils import utils

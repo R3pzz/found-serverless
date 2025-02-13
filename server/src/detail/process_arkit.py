@@ -3,8 +3,8 @@ import json
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from .config import IMAGE_SIZE, INTERMEDIATE_IMAGE_SIZE
-from .types import ARKitSource
+from config import IMAGE_SIZE, INTERMEDIATE_IMAGE_SIZE
+from types import ARKitSource
 
 DOWNSCALE_FACTOR = INTERMEDIATE_IMAGE_SIZE / IMAGE_SIZE
 

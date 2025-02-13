@@ -4,10 +4,10 @@ import torch
 import runpod
 import numpy as np
 
-from .data import init_cloud, download_from_cloud
-from .detail.config import FOUND_IMAGE_SIZE
+from data import init_cloud, download_from_cloud
+from detail.config import FOUND_IMAGE_SIZE
 
-from . import found, snu, sam2
+import found, snu, sam2
 
 # architecture:
 # 1. client generates a unique task id

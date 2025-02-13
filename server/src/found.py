@@ -4,8 +4,8 @@ import torch
 import numpy as np
 from collections import namedtuple
 
-from .detail.make_batch import make_batch
-from .detail.types import ARKitSource, Predictions
+from detail.make_batch import make_batch
+from detail.types import ARKitSource, Predictions
 
 from FOUND.FOUND.model import FIND
 from FOUND.FOUND.utils import Renderer

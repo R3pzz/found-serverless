@@ -5,9 +5,9 @@ from io import BytesIO
 from PIL import Image
 from supabase import Client, create_client
 
-from .detail.config import IMAGE_SIZE
-from .detail.types import ARKitSource
-from .detail.process_arkit import process_arkit
+from detail.config import IMAGE_SIZE
+from detail.types import ARKitSource
+from detail.process_arkit import process_arkit
 
 SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
 

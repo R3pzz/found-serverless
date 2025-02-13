@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 
-from .types import ARKitSource, Predictions
+from types import ARKitSource, Predictions
 
 def _kappa_to_alpha(mask: torch.Tensor) -> torch.Tensor:
   alpha = ((2 * mask) / ((mask ** 2.0) + 1)) \
