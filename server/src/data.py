@@ -47,13 +47,13 @@ def download_from_cloud(id: str) -> tuple[list, ARKitSource]:
   
   # Get all files in the bucket
   bucket = supabase.storage.from_(SUPABASE_SOURCE_BUCKET_ID)
-  filenames = bucket.list(task_folder_path)
+  files = bucket.list(task_folder_path)
 
   # Filter out image file names
   image_names = [
-    file['name']
-    for file in filenames
-    if file['name'].lower().endswith(('.png', '.jpg', '.jpeg'))
+    f['name']
+    for f in files
+    if f['name'].lower().endswith(('.png', '.jpg', '.jpeg'))
   ]
 
   # Load all images

@@ -63,9 +63,6 @@ def runpod_handler(event):
   return {'status': 'completed', 'id': id, 'foot_size': foot_size}
 
 if __name__ == '__main__':
-  sys.path.append(f'/app')
-  sys.path.append(f'/app/sam2')
-
   if torch.cuda.is_available():
     device = torch.device('cuda')
   else:

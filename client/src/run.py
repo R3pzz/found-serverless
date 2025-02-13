@@ -5,7 +5,7 @@ import runpod
 from supabase import Client, create_client
 
 SUPABASE_URL = 'https://tklasdbytqfxmplhgsbv.supabase.co'
-SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrbGFzZGJ5dHFmeG1wbGhnc2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5NDgwMjYsImV4cCI6MjA1NDUyNDAyNn0.9OMmEZtA0awVUhUxBgGbpTPtoI23nXJWiZOhc42Iqsw'
+SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrbGFzZGJ5dHFmeG1wbGhnc2J2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODk0ODAyNiwiZXhwIjoyMDU0NTI0MDI2fQ.7tItDQxhoo5z6TcMjEp7DCFoQ3gfDOt1JHyxZ6r6K1E'
 SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
 
 RUNPOD_API_KEY = ''
@@ -43,7 +43,7 @@ def upload_data(images_p: str, id: str) -> None:
     filename.rsplit('.', 1)[0]
     for filename
     in os.listdir(images_p)
-    if filename.endswith(('.json', '.png', '.jpg'))
+    if filename.endswith(('.png', '.jpg'))
   ]
 
   # Create image and arkit file names
@@ -65,9 +65,10 @@ def cleanup_data(id: str) -> None:
   bucket = supabase.storage.from_(SUPABASE_SOURCE_BUCKET_ID)
 
   task_folder_path = f'tasks/{id}/'
-  bucket.remove(task_folder_path)
+  files = bucket.list(task_folder_path)
+  bucket.remove([task_folder_path + f['name'] for f in files])
 
-def run_endpoint(id: str) -> dict:
+def run_endpoint(id: str) -> None:
   try:
     run_request = serverless.run_sync(
       {
