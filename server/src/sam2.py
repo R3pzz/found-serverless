@@ -1,9 +1,11 @@
 import os
 import torch
-from PIL import Image
 import numpy as np
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+from PIL import Image
+
+from sam2.sam2.build_sam import build_sam2
+from sam2.sam2.sam2_image_predictor import SAM2ImagePredictor
 
 CENTER_POINT_POS = np.array([[500, 610]])
 CENTER_POINT_LABEL = np.array([1])
