@@ -1,10 +1,10 @@
 [submodule "FOUND"]
-	path = FOUND
+	path = server/src/FOUND
 	url = https://github.com/R3pzz/FOUND
 	branch = no-keypoints
 [submodule "surface_normal_uncertainty"]
-	path = surface_normal_uncertainty
+	path = server/src/surface_normal_uncertainty
 	url = https://github.com/R3pzz/surface_normal_uncertainty
 [submodule "sam2"]
-	path = sam2
+	path = server/src/sam2
 	url = https://github.com/facebookresearch/sam2
