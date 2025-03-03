@@ -6,6 +6,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+# Add Supabase environment variables
+ENV SUPABASE_URL=""
+ENV SUPABASE_API_KEY=""
+ENV SUPABASE_SOURCE_BUCKET_ID=""
+
 # Set working directory
 WORKDIR /app
 

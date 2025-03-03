@@ -30,8 +30,8 @@ SNU_P = '/app/surface_normal_uncertainty'
 SAM2_P = '/app/sam2'
 FILE_STORAGE_ROOT = '/app/temp'
 
-SUPABASE_URL = ''
-SUPABASE_API_KEY = ''
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_API_KEY = os.environ.get('SUPABASE_API_KEY', '')
 
 def calc_size(kps: dict) -> float:
   big_toe = np.array(kps['big toe'])

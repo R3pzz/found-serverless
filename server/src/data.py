@@ -9,7 +9,7 @@ from detail.config import IMAGE_SIZE
 from detail.types import ARKitSource
 from detail.process_arkit import process_arkit
 
-SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
+SUPABASE_SOURCE_BUCKET_ID = os.environ.get('SUPABASE_SOURCE_BUCKET_ID', '') # 'found-serverless-source'
 
 supabase: Client = None
 

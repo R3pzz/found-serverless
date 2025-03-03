@@ -4,14 +4,14 @@ import runpod
 
 from supabase import Client, create_client
 
-SUPABASE_URL = 'https://tklasdbytqfxmplhgsbv.supabase.co'
-SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrbGFzZGJ5dHFmeG1wbGhnc2J2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODk0ODAyNiwiZXhwIjoyMDU0NTI0MDI2fQ.7tItDQxhoo5z6TcMjEp7DCFoQ3gfDOt1JHyxZ6r6K1E'
-SUPABASE_SOURCE_BUCKET_ID = 'found-serverless-source'
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
+SUPABASE_SOURCE_BUCKET_ID = os.getenv('SUPABASE_SOURCE_BUCKET_ID')
 
-RUNPOD_API_KEY = ''
-RUNPOD_ENDPOINT_ID = ''
+RUNPOD_API_KEY = os.getenv('RUNPOD_API_KEY')
+RUNPOD_ENDPOINT_ID = os.getenv('RUNPOD_ENDPOINT_ID')
 
-IMAGE_FOLDER = ''
+IMAGE_FOLDER = os.getenv('IMAGE_FOLDER')
 
 supabase: Client = None
 serverless: runpod.Endpoint = None
