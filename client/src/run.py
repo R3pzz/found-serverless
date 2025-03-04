@@ -1,6 +1,10 @@
 import os
 import uuid
 import runpod
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from supabase import Client, create_client
 
