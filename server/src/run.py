@@ -3,11 +3,21 @@ import sys
 import torch
 import runpod
 import numpy as np
+import logging
+from datetime import datetime
 
 from data import init_cloud, download_from_cloud
 from detail.config import FOUND_IMAGE_SIZE
 
 import found, snu, sam
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 # architecture:
 # 1. client generates a unique task id
@@ -34,65 +44,92 @@ SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_API_KEY = os.environ.get('SUPABASE_API_KEY', '')
 
 def calc_size(kps: dict) -> float:
-  big_toe = np.array(kps['big toe'])
-  heel = np.array(kps['heel'])
+    logger.debug("Calculating foot size from keypoints")
+    big_toe = np.array(kps['big toe'])
+    heel = np.array(kps['heel'])
 
-  # As the foot points to +X, the foot size is determined by
-  # subtracting the X component of the farthest and the closest points.
-  foot_size = big_toe[0] - heel[0] 
-  return foot_size
+    # As the foot points to +X, the foot size is determined by
+    # subtracting the X component of the farthest and the closest points.
+    foot_size = big_toe[0] - heel[0]
+    logger.debug(f"Calculated foot size: {foot_size}")
+    return foot_size
 
 def pipeline(id: str) -> float:
-  # Download files from the cloud storage
-  source_images, source_arkit = download_from_cloud(id)
+    logger.info(f"Starting pipeline for task ID: {id}")
+    
+    # Download files from the cloud storage
+    logger.debug("Downloading files from cloud storage")
+    source_images, source_arkit = download_from_cloud(id)
+    logger.debug(f"Downloaded {len(source_images)} images and ARKit data")
 
-  predictions = snu.process(source_images)
-  predictions[:]['mask'] = sam.process(source_images)
+    logger.debug("Processing with SNU model")
+    predictions = snu.process(source_images)
+    logger.debug("Processing with SAM model")
+    predictions[:]['mask'] = sam.process(source_images)
 
-  mesh, kps = found.process(predictions, source_arkit)
+    logger.debug("Processing with FOUND model")
+    mesh, kps = found.process(predictions, source_arkit)
+    logger.debug("FOUND model processing completed")
 
-  # do something with mesh(upload it somewhere, idk..) and calculate the foot size
-  return calc_size(kps)
+    # do something with mesh(upload it somewhere, idk..) and calculate the foot size
+    return calc_size(kps)
 
 def runpod_handler(event):
-  id: str = event['input']['id']
-  
-  print(f'processing task {id}')
-  foot_size = pipeline(id)
-
-  return {'status': 'completed', 'id': id, 'foot_size': foot_size}
+    logger.info("Received new RunPod event")
+    id: str = event['input']['id']
+    
+    logger.debug(f'Processing task {id}')
+    try:
+        foot_size = pipeline(id)
+        logger.debug(f"Successfully completed task {id} with foot size: {foot_size}")
+        return {'status': 'completed', 'id': id, 'foot_size': foot_size}
+    except Exception as e:
+        logger.error(f"Error processing task {id}: {str(e)}", exc_info=True)
+        return {'status': 'error', 'id': id, 'error': str(e)}
 
 if __name__ == '__main__':
-  if torch.cuda.is_available():
-    device = torch.device('cuda')
-  else:
-    raise RuntimeError('cuda device not available')
+    logger.info("Initializing serverless environment")
+    
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        logger.info(f"Using CUDA device: {torch.cuda.get_device_name(0)}")
+    else:
+        logger.error("CUDA device not available")
+        raise RuntimeError('cuda device not available')
 
-  init_cloud(SUPABASE_URL, SUPABASE_API_KEY)
+    logger.info("Initializing cloud storage connection")
+    init_cloud(SUPABASE_URL, SUPABASE_API_KEY)
 
-  sam2_args = sam.SAM2Args(
-    root_p=SAM2_P,
-    weights_file_name='sam2.1_hiera_large.pt',
-    cfg_p='sam2.1/sam2.1_hiera_l.yaml',
-    device=device
-  )
-  sam.init_predictor(sam2_args)
+    logger.info("Initializing SAM2 model")
+    sam2_args = sam.SAM2Args(
+        root_p=SAM2_P,
+        weights_file_name='sam2.1_hiera_large.pt',
+        cfg_p='sam2.1/sam2.1_hiera_l.yaml',
+        device=device
+    )
+    sam.init_predictor(sam2_args)
+    logger.info("SAM2 model initialized successfully")
 
-  snu_args = snu.SNUArgs(
-    root_p=SNU_P,
-    weights_file_name='synfoot_10k_gn.pt',
-    sampling_ratio=0.4,
-    importance_ratio=0.7,
-    device=device
-  )
-  snu.init_model(snu_args)
+    logger.info("Initializing SNU model")
+    snu_args = snu.SNUArgs(
+        root_p=SNU_P,
+        weights_file_name='synfoot_10k_gn.pt',
+        sampling_ratio=0.4,
+        importance_ratio=0.7,
+        device=device
+    )
+    snu.init_model(snu_args)
+    logger.info("SNU model initialized successfully")
 
-  found_args = found.FOUNDArgs(
-    root_p=FOUND_P,
-    find_dir='data/find_nfap',
-    device=device,
-    image_size=FOUND_IMAGE_SIZE
-  )
-  found.init_renderer(found_args)
+    logger.info("Initializing FOUND model")
+    found_args = found.FOUNDArgs(
+        root_p=FOUND_P,
+        find_dir='data/find_nfap',
+        device=device,
+        image_size=FOUND_IMAGE_SIZE
+    )
+    found.init_renderer(found_args)
+    logger.info("FOUND model initialized successfully")
 
-  runpod.serverless.start({'handler': runpod_handler})
+    logger.info("Starting RunPod serverless handler")
+    runpod.serverless.start({'handler': runpod_handler})
